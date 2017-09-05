@@ -5,8 +5,8 @@ import tensorflow as tf
 from tensorflow.python.ops import init_ops
 from tensorflow.python.ops import random_ops
 from tensorflow.contrib.rnn import RNNCell
-from ops import *
-from layers import *
+from layers.ops import *
+from layers.base import *
 
 class ConvLSTMCell(RNNCell):
     """Conv LSTM recurrent network cell"""
@@ -198,14 +198,14 @@ class ConvPhasedLSTMCell(RNNCell):
             is_down = tf.logical_and(tf.less(phi, r_on), tf.logical_not(is_up))
 
             k = tf.where(is_up, 2. * (phi / r_on),
-                          tf.where(is_down, 2. - 2. * (phi / r_on), alpha * phi))
+                         tf.where(is_down, 2. - 2. * (phi / r_on), alpha * phi))
 
-            k = tf.reshape(k, [1,1,1,self.num_out_ch])
+            k = tf.reshape(k, [1, 1, 1, self.num_out_ch])
 
             xh = conv_linear([x], self.filter_size, self.num_out_ch * 4, False, scope='xh',
-                    initializer=conv_orthogonal_initializer, init_param=None)
+                             initializer=conv_orthogonal_initializer, init_param=None)
             hh = conv_linear([h], self.filter_size, self.num_out_ch * 4, False, scope='hh',
-                    initializer=conv_identity_initializer, init_param=0.95)
+                             initializer=conv_identity_initializer, init_param=0.95)
 
             hidden = xh + hh + bias
 

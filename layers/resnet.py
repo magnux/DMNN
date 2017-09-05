@@ -90,6 +90,7 @@ def _resnext_block(inputs, num_in, bottleneck, cardinality, num_out, kernel_size
         return out + shortcut
 
 def resnet(inputs, n_res, config, is_training, mode='3D'):
+    mode = mode.upper()
     if mode == '3D':
         conv_fn = _conv3d
         pool_fn = lambda inputs: tf.reduce_mean(inputs, [1, 2, 3])
@@ -118,6 +119,7 @@ def resnet(inputs, n_res, config, is_training, mode='3D'):
     return out
 
 def resnext(inputs, n_res, config, is_training, mode='3D'):
+    mode = mode.upper()
     if mode == '3D':
         conv_fn = _conv3d
         pool_fn = lambda inputs: tf.reduce_mean(inputs, [1, 2, 3])

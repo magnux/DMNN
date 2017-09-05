@@ -5,8 +5,8 @@ import tensorflow as tf
 from tensorflow.python.ops import init_ops
 from tensorflow.python.ops import random_ops
 from tensorflow.contrib.rnn import RNNCell
-from ops import *
-from layers import *
+from layers.ops import *
+from layers.base import *
 
 class LSTMCell(RNNCell):
     '''Vanilla LSTM implemented with same initializations as BN-LSTM'''
@@ -189,10 +189,10 @@ class PhasedLSTMCell(RNNCell):
             is_down = tf.logical_and(tf.less(phi, r_on), tf.logical_not(is_up))
 
             k = tf.where(is_up, 2. * (phi / r_on),
-                          tf.where(is_down, 2. - 2. * (phi / r_on), alpha * phi))
+                         tf.where(is_down, 2. - 2. * (phi / r_on), alpha * phi))
 
             concat = tf.concat([x, h], axis=1)
-            w_both = tf.concat([W_xh, W_hh], axis=0)
+            W_both = tf.concat([W_xh, W_hh], axis=0)
             hidden = tf.matmul(concat, W_both) + bias
 
             i, j, f, o = tf.split(hidden, num_or_size_splits=4, axis=1)

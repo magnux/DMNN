@@ -5,8 +5,8 @@ import tensorflow as tf
 from tensorflow.python.ops import init_ops
 from tensorflow.python.ops import random_ops
 from tensorflow.contrib.rnn import RNNCell
-from ops import *
-from layers import *
+from layers.ops import *
+from layers.base import *
 
 
 class Conv3dLSTMCell(RNNCell):

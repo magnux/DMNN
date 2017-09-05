@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 from tqdm import trange
 import os
-from pose_seq_input import PoseSeqInput
+from dmnn_input import DmnnInput
 
 
 def export_to_tf(self):
@@ -63,6 +63,6 @@ if __name__ == "__main__":
     config = Config()
     # for i in range(5):
     #     config.data_set_version = 'v%d'%(i+1)
-    pose_seq_input = PoseSeqInput(config)
+    pose_seq_input = DmnnInput(config)
 
     print("do stuff")

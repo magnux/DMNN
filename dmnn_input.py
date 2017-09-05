@@ -8,7 +8,7 @@ from glob import glob
 from tqdm import trange
 
 
-class PoseSeqInput(object):
+class DmnnInput(object):
     """The input data."""
     def __init__(self, config):
         self.data_path = config.data_path

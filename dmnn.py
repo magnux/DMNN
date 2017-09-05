@@ -8,8 +8,8 @@ import tensorflow as tf
 from tensorflow.core.util.event_pb2 import SessionLog
 from tensorflow.python import debug as tf_debug
 
-from pose_seq_input import PoseSeqInput
-from pose_seq_model import PoseSeqModel
+from dmnn_input import DmnnInput
+from dmnn_model import DmnnModel
 from config import get_config
 
 from tqdm import trange
@@ -36,8 +36,6 @@ def run_epoch(session, model, input_, is_training, global_step, summary_writer, 
     """Runs the model on the given data."""
     loss_acum = 0.0
     acc_acum = 0.0
-    acc_acum_prod = 0.0
-    acc_acum_e = np.zeros([3], dtype=np.float32)
     if FLAGS.only_val:
         matrices = np.zeros([config.num_actions, config.num_actions], dtype=np.int32)
         n_mistakes = np.zeros([1, config.num_actions], dtype=np.int32)
@@ -122,7 +120,7 @@ def run_epoch(session, model, input_, is_training, global_step, summary_writer, 
         print(np.mean(mistake_labs[:,3]))
         of.close()
 
-    return loss_acum / epoch_size, acc_acum / epoch_size, acc_acum_e / epoch_size
+    return loss_acum / epoch_size, acc_acum / epoch_size
 
 
 def backup_pickle(filename, to_backup):
@@ -147,11 +145,11 @@ def main(_):
     # session_config.gpu_options.per_process_gpu_memory_fraction=1.0
 
     with tf.Graph().as_default():
-        pose_seq_input = PoseSeqInput(config=config)
+        pose_seq_input = DmnnInput(config=config)
 
         with tf.name_scope("Train"):
             with tf.variable_scope("Model", reuse=None):
-                mtrain = PoseSeqModel(
+                mtrain = DmnnModel(
                     is_training=True,
                     config=config,
                     input_=pose_seq_input
@@ -168,7 +166,7 @@ def main(_):
 
         with tf.name_scope("Validate"):
             with tf.variable_scope("Model", reuse=True):
-                mvalid = PoseSeqModel(
+                mvalid = DmnnModel(
                     is_training=False,
                     config=config,
                     input_=pose_seq_input
@@ -225,7 +223,7 @@ def main(_):
                     if not FLAGS.only_val:
                         if FLAGS.verbose:
                             print("    Training ...")
-                        train_loss, train_acc, train_acc_e = run_epoch(
+                        train_loss, train_acc = run_epoch(
                             session, mtrain, pose_seq_input, True, global_step,
                             sv.summary_writer, config, epoch_rem=epoch_rem
                         )
@@ -233,15 +231,13 @@ def main(_):
                         if FLAGS.verbose:
                             print("    Validation ...")
                         val_accs = np.empty(10)
-                        val_accs_e = np.empty([10, 3])
                         for i in range(1 if not FLAGS.only_val else 10):
-                            valid_loss, val_acc, val_acc_e = run_epoch(
+                            valid_loss, val_acc = run_epoch(
                                 session, mvalid, pose_seq_input, False, global_step,
                                 sv.summary_writer, config, COUNT=COUNT
                             )
                             COUNT = COUNT + 1
                             val_accs[i] = val_acc
-                            val_accs_e[i, :] = val_acc_e
                         if FLAGS.only_val:
                             print("Accuracy Mean :%.3f ... Std:%.1E"%(np.mean(val_accs),np.std(val_accs)))
 

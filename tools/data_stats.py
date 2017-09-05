@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 from tqdm import trange
 import os
-from pose_seq_input import PoseSeqInput
+from dmnn_input import DmnnInput
 
 
 def print_max_plen(pose_seq_input):
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     config = Config()
     for i in range(2):
         config.data_set_version = 'v%d' % (i + 1)
-        pose_seq_input = PoseSeqInput(config)
+        pose_seq_input = DmnnInput(config)
         compute_moments(pose_seq_input)
         compute_dm_moments(pose_seq_input)
         plot_dms(pose_seq_input)

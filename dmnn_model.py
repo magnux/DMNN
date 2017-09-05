@@ -16,7 +16,7 @@ from cells.conv_lstm import ConvLSTMCell
 COMB_MATRIX_COLLECTION = 'COMB_MATRIX'
 
 
-class PoseSeqModel(object):
+class DmnnModel(object):
     """The PoseSeq model."""
 
     def __init__(self, is_training, config, input_):

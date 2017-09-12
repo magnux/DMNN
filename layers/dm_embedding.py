@@ -19,10 +19,10 @@ def dm_embedding(is_training, config, poses, dm_shape, dm_size, batch_size, max_
 
         if config.norm_dms_ch:
             assert not config.split_bod, print('norm_dms_ch incompatible with split_bod')
-            embedding = [norm_dms_ch(emb) for emb in embedding]
+            embedding = [norm_dms_ch(emb, config) for emb in embedding]
         elif config.norm_dms_px:
             assert not config.split_bod, print('norm_dms_px incompatible with split_bod')
-            embedding = [norm_dms_px(emb) for emb in embedding]
+            embedding = [norm_dms_px(emb, config) for emb in embedding]
         elif config.norm_dms_bn:
             embedding = [tf.contrib.layers.batch_norm(emb, center=False, scale=False, updates_collections=None,
                                                        reuse=None if (e == 0) and is_training else True,
@@ -78,30 +78,30 @@ def dm_emb(poses, consider_conf, dm_transform, dm_shape, batch_size, max_length,
     return embedding
 
 
-def norm_dms_ch(emb):
-    mean_ch_dist = load_arr('mean_ch_dist')
-    std_ch_dist = load_arr('std_ch_dist')
+def norm_dms_ch(emb, config):
+    mean_ch_dist = load_arr('mean_ch_dist', config)
+    std_ch_dist = load_arr('std_ch_dist', config)
     emb_0 = tf.expand_dims((emb[:, :, :, :, 0] - mean_ch_dist) / std_ch_dist, 4)
     if emb.get_shape().as_list()[4] == 1:
         return emb_0
     else:
-        mean_ch_rot = load_arr('mean_ch_rot')
-        std_ch_rot = load_arr('std_ch_rot')
+        mean_ch_rot = load_arr('mean_ch_rot', config)
+        std_ch_rot = load_arr('std_ch_rot', config)
         emb_1 = tf.expand_dims((emb[:, :, :, :, 1] - mean_ch_rot) / std_ch_rot, 4)
         return tf.concat([emb_0, emb_1], axis=4)
 
 
-def norm_dms_px(emb, dm_shape):
+def norm_dms_px(emb, dm_shape, config):
     def shape_mat(x):
         return tf.reshape(x, [1, 1, dm_shape[0], dm_shape[1]])
 
-    mean_px_dist = shape_mat(load_arr('mean_px_dist'))
-    std_px_dist = shape_mat(load_arr('std_px_dist'))
+    mean_px_dist = shape_mat(load_arr('mean_px_dist', config))
+    std_px_dist = shape_mat(load_arr('std_px_dist', config))
     emb_0 = tf.expand_dims((emb[:, :, :, :, 0] - mean_px_dist) / (std_px_dist + 1e-8), 4)
     if emb.get_shape().as_list()[4] == 1:
         return emb_0
     else:
-        mean_px_rot = shape_mat(load_arr('mean_px_rot'))
-        std_px_rot = shape_mat(load_arr('std_px_rot'))
+        mean_px_rot = shape_mat(load_arr('mean_px_rot', config))
+        std_px_rot = shape_mat(load_arr('std_px_rot', config))
         emb_1 = tf.expand_dims((emb[:, :, :, :, 1] - mean_px_rot) / (std_px_rot + 1e-8), 4)
         return tf.concat([emb_0, emb_1], axis=4)

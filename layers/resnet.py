@@ -9,6 +9,7 @@ __all__ = ['resnet', 'resnext']
 _weights_initializer = tcl.variance_scaling_initializer()
 _weights_regularizer = tcl.l2_regularizer(5e-4)
 
+
 def _conv3d(inputs, num_outputs, kernel_size, stride):
     return tfl.conv3d(inputs,
                       num_outputs,
@@ -18,6 +19,7 @@ def _conv3d(inputs, num_outputs, kernel_size, stride):
                       use_bias=False,
                       kernel_initializer=_weights_initializer,
                       kernel_regularizer=_weights_regularizer)
+
 
 def _conv2d(inputs, num_outputs, kernel_size, stride):
     return tfl.conv2d(inputs,
@@ -29,6 +31,7 @@ def _conv2d(inputs, num_outputs, kernel_size, stride):
                       kernel_initializer=_weights_initializer,
                       kernel_regularizer=_weights_regularizer)
 
+
 def _batch_norm(inputs, is_training):
     return tcl.batch_norm(inputs,
                           center=True,
@@ -38,6 +41,7 @@ def _batch_norm(inputs, is_training):
                           updates_collections=None,
                           fused=False,
                           is_training=is_training)
+
 
 def _preact_conv(inputs, num_outputs, kernel_size, stride, is_training,
                  scope=None, groups=None, conv_fn=_conv3d):
@@ -52,6 +56,7 @@ def _preact_conv(inputs, num_outputs, kernel_size, stride, is_training,
             out = tf.concat(outs, -1)
     return out
 
+
 def _resnet_block(inputs, num_in, num_out, kernel_size, stride, is_training,
                   scope=None, conv_fn=_conv3d):
     with tf.variable_scope(scope, 'res', [inputs]):
@@ -63,11 +68,12 @@ def _resnet_block(inputs, num_in, num_out, kernel_size, stride, is_training,
             shortcut = inputs
         
         out = _preact_conv(
-            inputs, num_out, 3, stride, is_training, 'conv1', conv_fn=conv_fn)
+            inputs, num_out, kernel_size, stride, is_training, 'conv1', conv_fn=conv_fn)
         out = _preact_conv(
-            out, num_out, 3, 1, is_training, 'conv2', conv_fn=conv_fn)
+            out, num_out, kernel_size, 1, is_training, 'conv2', conv_fn=conv_fn)
         
         return out + shortcut
+
 
 def _resnext_block(inputs, num_in, bottleneck, cardinality, num_out, kernel_size,
                    stride, is_training, scope=None, conv_fn=_conv3d):
@@ -82,12 +88,13 @@ def _resnext_block(inputs, num_in, bottleneck, cardinality, num_out, kernel_size
         out = _preact_conv(
             inputs, bottleneck, 1, 1, is_training, 'conv1', conv_fn=conv_fn)
         out = _preact_conv(
-            out, bottleneck, 3, stride, is_training, 'conv2',
+            out, bottleneck, kernel_size, stride, is_training, 'conv2',
             groups=cardinality, conv_fn=conv_fn)
         out = _preact_conv(
             out, num_out, 1, 1, is_training, 'conv3', conv_fn=conv_fn)
         
         return out + shortcut
+
 
 def resnet(inputs, n_res, config, is_training, mode='3D'):
     mode = mode.upper()
@@ -117,6 +124,7 @@ def resnet(inputs, n_res, config, is_training, mode='3D'):
         out = pool_fn(out)
         out = _batch_norm(out, is_training)
     return out
+
 
 def resnext(inputs, n_res, config, is_training, mode='3D'):
     mode = mode.upper()

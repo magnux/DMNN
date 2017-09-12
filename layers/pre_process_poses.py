@@ -221,7 +221,7 @@ def pre_process_poses(is_training, config, poses, actions):
 
 def load_arr(name, config):
     data_set = 'NTURGBD' if config.skel_transform else config.data_set
-    data_set_version = '' if config.skel_transform else config.data_set_version
+    data_set_version = 'v1' if config.skel_transform else config.data_set_version
     file_path = os.path.join(config.data_path, data_set + data_set_version + '_' + name + '.npy')
     arr = None
     with open(file_path, 'rb') as f:

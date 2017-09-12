@@ -152,13 +152,12 @@ class DmnnModel(object):
                 )
                 self._rnn_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=scope.name)
         elif config.inference_model[:4] == 'conv':
-            resnetmodel = None
-            if config.inference_model[7:] == 'resnet':
-                resnetmodel = resnet.resnet
-            elif config.inference_model[7:] == 'resnext':
-                resnetmodel = resnet.resnext
             with tf.variable_scope(config.inference_model) as scope:
-                outputs = resnetmodel(
+                if config.inference_model[7:] == 'resnet':
+                    resnet_model = resnet.resnet
+                elif config.inference_model[7:] == 'resnext':
+                    resnet_model = resnet.resnext
+                outputs = resnet_model(
                     embedding, config.num_layers, config.resnet_blocks,
                     self._is_training, config.inference_model[4:6])
                 max_length = 1

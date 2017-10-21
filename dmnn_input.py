@@ -60,21 +60,9 @@ class DmnnInput(object):
         self.train_epoch_size = (self.len_train_keys // self.batch_size) + 1
         self.val_epoch_size = (self.len_val_keys // self.batch_size) + 1
 
-        if self.data_set == 'NTURGBD':
-            self.pshape = [25 * 2, 3 if self.only_3dpos else 7, None]
-            self.max_plen = 300
-        elif self.data_set == 'SBU_inter':
-            self.pshape = [15 * 2, 3, None]
-            self.max_plen = 46
-        elif self.data_set == 'UWA3DII':
-            self.pshape = [15, 3, None]
-            self.max_plen = 167
-        elif self.data_set == 'NUCLA':
-            self.pshape = [20, 3, None]
-            self.max_plen = 202
-        elif self.data_set == 'MSRC12':
-            self.pshape = [20, 3, None]
-            self.max_plen = 1320
+        self.pshape = [config.njoints, 3 if (config.data_set != 'NTURGBD')
+                                             or self.only_3dpos else 7, None]
+        self.max_plen = config.max_plen
 
         self.pshape[2] = self.pick_num if self.random_pick else (self.crop_len if self.random_crop else None)
 

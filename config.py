@@ -32,17 +32,32 @@ def get_config(flags):
     if config.data_set == 'NTURGBD':
         config.num_actions = 60
         config.num_subjects = 40
+        config.njoints = 25 * 2
+        config.ncams = 3
+        config.max_plen = 300
     elif config.data_set == 'SBU_inter':
         config.num_actions = 8
         config.num_subjects = 7
+        config.ncams = 1
+        config.njoints = 15 * 2
+        config.max_plen = 46
     elif config.data_set == 'UWA3DII':
         config.num_actions = 30
         config.num_subjects = 10
+        config.ncams = 1
+        config.njoints = 15
+        config.max_plen = 167
     elif config.data_set == 'NUCLA':
         config.num_actions = 12
         config.num_subjects = 10
+        config.ncams = 1
+        config.njoints = 20
+        config.max_plen = 202
     elif config.data_set == 'MSRC12':
         config.num_actions = 12
         config.num_subjects = 30
+        config.ncams = 1
+        config.njoints = 20
+        config.max_plen = 1320
 
     return config

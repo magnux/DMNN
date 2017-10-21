@@ -66,12 +66,12 @@ def _resnet_block(inputs, num_in, num_out, kernel_size, stride, is_training,
                 conv_fn=conv_fn)
         else:
             shortcut = inputs
-        
+
         out = _preact_conv(
             inputs, num_out, kernel_size, stride, is_training, 'conv1', conv_fn=conv_fn)
         out = _preact_conv(
             out, num_out, kernel_size, 1, is_training, 'conv2', conv_fn=conv_fn)
-        
+
         return out + shortcut
 
 
@@ -84,7 +84,7 @@ def _resnext_block(inputs, num_in, bottleneck, cardinality, num_out, kernel_size
                 conv_fn=conv_fn)
         else:
             shortcut = inputs
-        
+
         out = _preact_conv(
             inputs, bottleneck, 1, 1, is_training, 'conv1', conv_fn=conv_fn)
         out = _preact_conv(
@@ -92,11 +92,11 @@ def _resnext_block(inputs, num_in, bottleneck, cardinality, num_out, kernel_size
             groups=cardinality, conv_fn=conv_fn)
         out = _preact_conv(
             out, num_out, 1, 1, is_training, 'conv3', conv_fn=conv_fn)
-        
+
         return out + shortcut
 
 
-def resnet(inputs, n_res, config, is_training, mode='3D'):
+def resnet(inputs, n_res, config, is_training, mode='3D', block_outputs=False):
     mode = mode.upper()
     if mode == '3D':
         conv_fn = _conv3d
@@ -106,10 +106,11 @@ def resnet(inputs, n_res, config, is_training, mode='3D'):
         pool_fn = lambda inputs: tf.reduce_mean(inputs, [1, 2])
     else:
         raise ValueError('mode must be on of "3D" or "2D"')
-    
+
     with tf.variable_scope('block0', values=[inputs]):
         out = conv_fn(inputs, config[0]['size'], 3, config[0]['stride'])
-    
+
+    block_outs = []
     for b in range(1, len(config)):
         with tf.variable_scope('block%d' % b, values=[out]):
             for r in range(n_res):
@@ -119,14 +120,20 @@ def resnet(inputs, n_res, config, is_training, mode='3D'):
                 out = _resnet_block(
                     out, num_in, num_out, 3, stride, is_training, 'res%d' % r,
                     conv_fn)
-    
+            # Only appending last block in each macroblock
+            block_outs.append(out)
+
     with tf.variable_scope('pooling', values=[out]):
-        out = pool_fn(out)
-        out = _batch_norm(out, is_training)
+        if not block_outputs:
+            out = pool_fn(out)
+            out = _batch_norm(out, is_training)
+        else:
+            block_outs = [_batch_norm(pool_fn(block_out), is_training) for block_out in block_outs]
+            out = tf.concat(block_outs, 1)
     return out
 
 
-def resnext(inputs, n_res, config, is_training, mode='3D'):
+def resnext(inputs, n_res, config, is_training, mode='3D', block_outputs=False):
     mode = mode.upper()
     if mode == '3D':
         conv_fn = _conv3d
@@ -136,10 +143,11 @@ def resnext(inputs, n_res, config, is_training, mode='3D'):
         pool_fn = lambda inputs: tf.reduce_mean(inputs, [1, 2])
     else:
         raise ValueError('mode must be on of "3D" or "2D"')
-    
+
     with tf.variable_scope('block0', values=[inputs]):
         out = conv_fn(inputs, config[0]['size'], 3, config[0]['stride'])
-    
+
+    block_outs = []
     for b in range(1, len(config)):
         with tf.variable_scope('block%d' % b, values=[out]):
             for r in range(n_res):
@@ -151,8 +159,14 @@ def resnext(inputs, n_res, config, is_training, mode='3D'):
                 out = _resnext_block(
                     out, num_in, bottleneck, cardinality, num_out, 3, stride,
                     is_training, 'res%d' % r, conv_fn)
-    
+            # Only appending last block in each macroblock
+            block_outs.append(out)
+
     with tf.variable_scope('pooling', values=[out]):
-        out = pool_fn(out)
-        out = _batch_norm(out, is_training)
+        if not block_outputs:
+            out = pool_fn(out)
+            out = _batch_norm(out, is_training)
+        else:
+            block_outs = [_batch_norm(pool_fn(block_out), is_training) for block_out in block_outs]
+            out = tf.concat(block_outs, 1)
     return out
